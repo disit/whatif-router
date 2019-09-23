@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="GHServlet:war exploded" />
+    </artifacts-to-build>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5c29fa8b-c4d1-4c3e-9843-477bfce3feef" name="Default Changelist" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
+  <component name="ProjectId" id="1OuklzECEtIuZS7f3iZLnS8EcmQ" />
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="project.structure.last.edited" value="Artifacts" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="Tomcat 9.0.22" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 9.0.22" ALTERNATIVE_JRE_ENABLED="false">
+      <option name="OPEN_IN_BROWSER_URL" value="http://localhost:8080/GHServlet_war_exploded/" />
+      <option name="UPDATING_POLICY" value="restart-server" />
+      <deployment>
+        <artifact name="GHServlet:war exploded">
+          <settings>
+            <option name="CONTEXT_PATH" value="/GHServlet_war_exploded" />
+          </settings>
+        </artifact>
+      </deployment>
+      <server-settings>
+        <option name="BASE_DIRECTORY_NAME" value="Tomcat_9_0_22_GHServlet_2" />
+      </server-settings>
+      <predefined_log_file enabled="true" id="Tomcat" />
+      <predefined_log_file enabled="true" id="Tomcat Catalina" />
+      <predefined_log_file id="Tomcat Manager" />
+      <predefined_log_file id="Tomcat Host Manager" />
+      <predefined_log_file id="Tomcat Localhost Access" />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="45551" />
+      </RunnerSettings>
+      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
+        <option name="USE_ENV_VARIABLES" value="true" />
+        <STARTUP>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </STARTUP>
+        <SHUTDOWN>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </SHUTDOWN>
+      </ConfigurationWrapper>
+      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Debug">
+        <option name="USE_ENV_VARIABLES" value="true" />
+        <STARTUP>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </STARTUP>
+        <SHUTDOWN>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </SHUTDOWN>
+      </ConfigurationWrapper>
+      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Run">
+        <option name="USE_ENV_VARIABLES" value="true" />
+        <STARTUP>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </STARTUP>
+        <SHUTDOWN>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </SHUTDOWN>
+      </ConfigurationWrapper>
+      <method v="2">
+        <option name="Make" enabled="true" />
+        <option name="BuildArtifacts" enabled="true">
+          <artifact name="GHServlet:war exploded" />
+        </option>
+      </method>
+    </configuration>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5c29fa8b-c4d1-4c3e-9843-477bfce3feef" name="Default Changelist" comment="" />
+      <created>1564835023557</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1564835023557</updated>
+      <workItem from="1564835024789" duration="1165000" />
+      <workItem from="1565167667218" duration="555000" />
+      <workItem from="1565170169960" duration="3353000" />
+      <workItem from="1565183383242" duration="3005000" />
+      <workItem from="1565251867575" duration="10859000" />
+      <workItem from="1565263178586" duration="185000" />
+      <workItem from="1565263452684" duration="1230000" />
+      <workItem from="1565265571629" duration="174000" />
+      <workItem from="1565270110512" duration="3196000" />
+      <workItem from="1565293934460" duration="3254000" />
+      <workItem from="1565340642363" duration="1298000" />
+      <workItem from="1565348488793" duration="913000" />
+      <workItem from="1565351278525" duration="3615000" />
+      <workItem from="1565427104403" duration="12082000" />
+      <workItem from="1565508020969" duration="5778000" />
+      <workItem from="1565521160039" duration="703000" />
+      <workItem from="1565524443725" duration="1161000" />
+      <workItem from="1565595655649" duration="910000" />
+      <workItem from="1566292335187" duration="641000" />
+      <workItem from="1566377225309" duration="3954000" />
+      <workItem from="1566394938689" duration="918000" />
+      <workItem from="1566397208957" duration="1425000" />
+      <workItem from="1566479071205" duration="5076000" />
+      <workItem from="1566487771734" duration="111000" />
+      <workItem from="1566544810207" duration="1098000" />
+      <workItem from="1566831523375" duration="86000" />
+      <workItem from="1566888922560" duration="3767000" />
+      <workItem from="1566921155556" duration="1949000" />
+      <workItem from="1566935201452" duration="662000" />
+      <workItem from="1566978005809" duration="2553000" />
+      <workItem from="1567001924746" duration="1105000" />
+      <workItem from="1567020911598" duration="1350000" />
+      <workItem from="1567061786717" duration="818000" />
+      <workItem from="1567070943020" duration="194000" />
+      <workItem from="1567074474908" duration="24000" />
+      <workItem from="1567075263662" duration="1309000" />
+      <workItem from="1567080742399" duration="618000" />
+      <workItem from="1567087151550" duration="1193000" />
+      <workItem from="1567155530540" duration="2050000" />
+      <workItem from="1567167228696" duration="1349000" />
+      <workItem from="1567239537669" duration="609000" />
+      <workItem from="1567330267438" duration="1251000" />
+      <workItem from="1567343503277" duration="696000" />
+      <workItem from="1567409899047" duration="632000" />
+      <workItem from="1567505419144" duration="271000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+</project>
