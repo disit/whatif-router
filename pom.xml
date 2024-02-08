@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.dashboard.servlet</groupId>
-    <artifactId>GHServlet</artifactId>
+    <artifactId>whatif-router</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
     <properties>
