@@ -49,5 +49,10 @@
             <version>2.10.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>graphhopper-reader-gtfs</artifactId>
+            <version>7.0-pre2</version>
+        </dependency>
     </dependencies>
 </project>
