@@ -67,38 +67,79 @@ public class Servlet {
             @DefaultValue("") @QueryParam("avoid_area") String avoidArea,
             @DefaultValue("") @QueryParam("startDatetime") String startTimestamp,
             @DefaultValue("fastest") @QueryParam("weighting") String weighting,
-            @DefaultValue("") @QueryParam("routing") String routing) {
+            @DefaultValue("") @QueryParam("routing") String routing,
+            @DefaultValue("false") @QueryParam("wkt") String wkt) {
 
-        // If the startDatetime is not specified, use the current datetime
-        LocalDateTime startDatetime;
-        if (startTimestamp.isEmpty()) {
-            startDatetime = LocalDateTime.now();
-        } else {
-            startDatetime = LocalDateTime.parse(startTimestamp);
+        if(waypoints == null) {
+            return Response.status(400).entity("{\"error\":\"missing waypoints=lon,lat;...;lon,lat parameter\"}")
+                    .header("Content-Type", "application/json")
+                    .header("Access-Control-Allow-Origin", "*").build();
         }
 
         String[] waypointsArray = waypoints.split(";");
-        GraphHopper hopper;
-        GHResponse response;
-
-        if (routing.equals("pt")) {
-            GraphHopperConfig config = createConfig();
-            hopper = initGHGtfs(config);
-            PtRouter ptRouter = initPtRouter(config, (GraphHopperGtfs) hopper);
-            response = getGtfsRoute(ptRouter, waypointsArray, startDatetime);
-        } else {
-            hopper = initGH(vehicle, weighting, startDatetime);
-            if (!avoidArea.isEmpty()) {
-                blockAreaSetup((DynamicGraphHopper) hopper, avoidArea);  // extract barriers and apply them
+        if(waypointsArray.length<2) {
+            return Response.status(400).entity("{\"error\":\"invalid waypoints=lon,lat;...;lon,lat parameter (#points<2)\"}")
+                    .header("Content-Type", "application/json")
+                    .header("Access-Control-Allow-Origin", "*").build();
+        }
+        
+        try {
+            for(String s: waypointsArray) {
+                String[] p = s.split(",");
+                if(p.length!=2) {
+                    return Response.status(400).entity("{\"error\":\"invalid waypoints parameter (no lon,lat) \"}")
+                            .header("Content-Type", "application/json")
+                            .header("Access-Control-Allow-Origin", "*").build();
+                }
+                double lon = Double.parseDouble(p[0]);
+                double lat = Double.parseDouble(p[1]);
             }
-            response = blockedRoute(vehicle, hopper, waypointsArray);
+        } catch(NumberFormatException e) {
+            return Response.status(400).entity("{\"error\":\"invalid waypoints parameter (wrong numeric format) \"}")
+                    .header("Content-Type", "application/json")
+                    .header("Access-Control-Allow-Origin", "*").build();
         }
+        try {
+            // If the startDatetime is not specified, use the current datetime
+            LocalDateTime startDatetime;
+            if (startTimestamp.isEmpty()) {
+                startDatetime = LocalDateTime.now();
+            } else {
+                startDatetime = LocalDateTime.parse(startTimestamp);
+            }
 
-        JSONObject jsonResponse = buildFormattedResponse(routing, hopper, response);
-        if (routing.equals("pt")) {
-            hopper.close();
+            GraphHopper hopper;
+            GHResponse response;
+
+            if (routing.equals("pt") || routing.equals("public_transport") || vehicle.equals("bus")) {
+                routing = "pt";
+                GraphHopperConfig config = createConfig();
+                hopper = initGHGtfs(config);
+                PtRouter ptRouter = initPtRouter(config, (GraphHopperGtfs) hopper);
+                response = getGtfsRoute(ptRouter, waypointsArray, startDatetime);
+            } else {
+                hopper = initGH(vehicle, weighting, startDatetime);
+                if (!avoidArea.isEmpty()) {
+                    blockAreaSetup((DynamicGraphHopper) hopper, avoidArea);  // extract barriers and apply them
+                }
+                response = blockedRoute(vehicle, hopper, waypointsArray);
+            }
+
+            JSONObject jsonResponse = buildFormattedResponse(routing, wkt, hopper, response);
+            if (routing.equals("pt")) {
+                hopper.close();
+            }
+            return Response.ok(jsonResponse.toString())
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Content-Type", "application/json")
+                    .build();
+        } catch(Exception e) {
+            e.printStackTrace();
+
+            return Response.status(500).entity("{\"exception\":" + org.json.JSONObject.valueToString(e.getMessage()) + "}")
+                    .header("Content-Type", "application/json")
+                    .header("Access-Control-Allow-Origin", "*").build();
         }
-        return Response.ok(jsonResponse.toString()).header("Access-Control-Allow-Origin", "*").build();
     }
 
     public static void main(String[] args) {
@@ -277,7 +318,7 @@ public class Servlet {
     }
 
     // build response json as required by leaflet routing machine
-    public static JSONObject buildFormattedResponse(String _routingType, GraphHopper hopper, GHResponse response) {
+    public static JSONObject buildFormattedResponse(String _routingType, String _wkt, GraphHopper hopper, GHResponse response) {
         JSONObject jsonRsp = new JSONObject();
 
         // Use all paths
@@ -297,7 +338,8 @@ public class Servlet {
 
             JSONObject jsonPath = new JSONObject();
 
-            jsonPath.put("wkt", pointList.toLineString(false));
+            if(_wkt.equals("true"))
+                jsonPath.put("wkt", pointList.toLineString(false));
 
             // bbox
             BBox box = hopper.getBaseGraph().getBounds();
@@ -317,7 +359,7 @@ public class Servlet {
             jsonPath.put("time", millis);
 
             // instructions
-            if (_routingType.equals("pt")) {
+            if (_routingType.equals("pt") || _routingType.equals("public_transport")) {
                 List<Trip.Leg> legs = path.getLegs();
                 jsonPath.put("instructions", new JSONArray(serializeLegInstructions((GraphHopperGtfs) hopper, instructions, legs)));
             } else {
