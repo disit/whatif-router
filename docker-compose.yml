@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  whatif-router:
+    image: maven:3.9.6-eclipse-temurin-8
+    container_name: whatif-router
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: mvn clean package
+  tomcat:
+    image: tomcat:9.0-jdk8
+    container_name: tomcat
+    ports:
+      - "8080:8080"
+    environment:
+      GH_MAP_PBF: "<path/to/.osm.pbf>"
+      GH_LOCATION_PFX: "<path/of/cache/dir>" #cache directory base path
+      GH_TYPICAL_TTT_PATH: "<path/of/ttt>/dir" #ttt directory base path
+      GH_GTFS_FILES: "<path/to/.gtfs>" #in case of multiple gtfs files, separate with ','
+    volumes:
+      - <path/to/data>:/usr/local/tomcat/<path/to/data>
+      - ./target/whatif-router-1.0-SNAPSHOT.war:/usr/local/tomcat/webapps/<filename>.war
+    restart: unless-stopped

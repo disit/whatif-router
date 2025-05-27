@@ -24,12 +24,9 @@ import com.graphhopper.util.shapes.Circle;
 import com.graphhopper.util.shapes.GHPoint;
 import com.graphhopper.util.shapes.Polygon;
 import com.graphhopper.gtfs.*;
-import com.graphhopper.GHRequest;
-import com.graphhopper.GHResponse;
-import java.time.ZoneId;
-import java.io.File;
-import com.graphhopper.config.Profile;
 
+import java.time.ZoneId;
+import com.graphhopper.config.Profile;
 import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -233,10 +230,13 @@ public class Servlet {
 
     public static DynamicGraphHopper initGH(String _vehicle, String weighting, LocalDateTime startDatetime) {
         // Create EncodingManager for the selected vehicle (car, foot, bike)
-        final EncodingManager vehicleManager = EncodingManager.create(_vehicle);
+        //final EncodingManager vehicleManager = EncodingManager.create(_vehicle);
 
         // create one GraphHopper instance
         DynamicGraphHopper hopper = new DynamicGraphHopper(startDatetime);
+        //Naldi 14/05/2025 -> add factories to use custom vehicles
+        hopper.setVehicleTagParserFactory(new CustomVehicleTagParserFactory());
+        hopper.setVehicleEncodedValuesFactory(new CustomVehicleEncodedValuesFactory());
         String mapPbf = System.getenv("GH_MAP_PBF");
         if (mapPbf == null) {
             mapPbf = _datareaderFile;
