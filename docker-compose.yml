@@ -18,6 +18,7 @@ services:
       GH_LOCATION_PFX: "<path/of/cache/dir>" #cache directory base path
       GH_TYPICAL_TTT_PATH: "<path/of/ttt>/dir" #ttt directory base path
       GH_GTFS_FILES: "<path/to/.gtfs>" #in case of multiple gtfs files, separate with ','
+      GH_TIMEZONE: "Europe/Rome" #time zone of startDatetime and of the GTFS feeds
     volumes:
       - <path/to/data>:/usr/local/tomcat/<path/to/data>
       - ./target/whatif-router-1.0-SNAPSHOT.war:/usr/local/tomcat/webapps/<filename>.war

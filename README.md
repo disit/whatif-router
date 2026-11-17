@@ -95,6 +95,17 @@ Possible values:
     - `fastest_with_traffic`
     - `custom` (not a possible value; case not detailed at the moment)
 
+### Public transport (`vehicle=bus`)
+
+`vehicle=bus` (or `routing=pt` / `routing=public_transport`) routes on foot + GTFS public transport. `startDatetime` is read in the `GH_TIMEZONE` time zone (default `Europe/Rome`). Extra optional parameters, ignored by the other vehicles; leaving them out gives the same result as before they existed:
+
+- `arriveBy`: `true` to read `startDatetime` as the latest arrival time instead of the departure time. Default `false`.
+- `maxWalkMinutes`: maximum walking time to the first stop and from the last stop. Default: no limit.
+- `limitSolutions`: maximum number of alternatives. Default: GraphHopper's.
+- `searchLaterHours`: when no route with a ride is found (e.g. no service at night), retry one hour later at a time, up to this many hours (max 24), and return the first answer with a ride. Default `0` (off). Not used with `arriveBy=true`.
+
+The GTFS graph is loaded once, on the first public transport request, and shared by all the following ones (restart the webapp after changing `GH_GTFS_FILES`).
+
 The response is a JSON with a list of instructions to follow to reach the destination.
 The instructions are the same as the ones returned by GraphHopper, and contain the following fields:
 

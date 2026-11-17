@@ -46,7 +46,24 @@ public class Servlet {
     private static final String _graphLocation = "graph-cache";
     private static String _gtfsFile = "at.gtfs,gest.gtfs";
     private static String _datareaderFile = "centro-latest.osm.pbf";
-    private static final ZoneId _zoneId = ZoneId.of("Europe/Rome");
+    // Time zone of startDatetime (and of the GTFS feeds). GH_TIMEZONE, default Europe/Rome.
+    private static final ZoneId _zoneId = ZoneId.of(System.getenv("GH_TIMEZONE") != null ? System.getenv("GH_TIMEZONE") : "Europe/Rome");
+
+    // Public transport graph + router, loaded once and shared by all requests
+    // (PtRouter is thread safe). Loading it per request took ~30 s and made
+    // concurrent requests fail on the graph read lock.
+    private static GraphHopperGtfs _ptHopper;
+    private static PtRouter _ptRouter;
+
+    private static synchronized void ensurePt() {
+        if (_ptRouter != null) {
+            return;
+        }
+        GraphHopperConfig config = createConfig();
+        GraphHopperGtfs hopper = initGHGtfs(config);
+        _ptRouter = initPtRouter(config, hopper);
+        _ptHopper = hopper;
+    }
 
     /**
      * API interface method called by Dashboard
@@ -65,7 +82,12 @@ public class Servlet {
             @DefaultValue("") @QueryParam("startDatetime") String startTimestamp,
             @DefaultValue("fastest") @QueryParam("weighting") String weighting,
             @DefaultValue("") @QueryParam("routing") String routing,
-            @DefaultValue("false") @QueryParam("wkt") String wkt) {
+            @DefaultValue("false") @QueryParam("wkt") String wkt,
+            // public transport only, all optional: defaults keep the old behaviour
+            @DefaultValue("false") @QueryParam("arriveBy") String arriveBy,
+            @DefaultValue("") @QueryParam("maxWalkMinutes") String maxWalkMinutes,
+            @DefaultValue("") @QueryParam("limitSolutions") String limitSolutions,
+            @DefaultValue("") @QueryParam("searchLaterHours") String searchLaterHours) {
 
         if(waypoints == null) {
             return Response.status(400).entity("{\"error\":\"missing waypoints=lon,lat;...;lon,lat parameter\"}")
@@ -96,6 +118,14 @@ public class Servlet {
                     .header("Content-Type", "application/json")
                     .header("Access-Control-Allow-Origin", "*").build();
         }
+        PtOptions options;
+        try {
+            options = new PtOptions(arriveBy, maxWalkMinutes, limitSolutions, searchLaterHours);
+        } catch(NumberFormatException e) {
+            return Response.status(400).entity("{\"error\":\"invalid maxWalkMinutes, limitSolutions or searchLaterHours (positive integers)\"}")
+                    .header("Content-Type", "application/json")
+                    .header("Access-Control-Allow-Origin", "*").build();
+        }
         try {
             // If the startDatetime is not specified, use the current datetime
             LocalDateTime startDatetime;
@@ -110,10 +140,9 @@ public class Servlet {
 
             if (routing.equals("pt") || routing.equals("public_transport") || vehicle.equals("bus")) {
                 routing = "pt";
-                GraphHopperConfig config = createConfig();
-                hopper = initGHGtfs(config);
-                PtRouter ptRouter = initPtRouter(config, (GraphHopperGtfs) hopper);
-                response = getGtfsRoute(ptRouter, waypointsArray, startDatetime);
+                ensurePt();
+                hopper = _ptHopper;
+                response = getGtfsRoute(_ptRouter, waypointsArray, startDatetime, options);
             } else {
                 hopper = initGH(vehicle, weighting, startDatetime);
                 if (!avoidArea.isEmpty()) {
@@ -123,9 +152,6 @@ public class Servlet {
             }
 
             JSONObject jsonResponse = buildFormattedResponse(routing, wkt, hopper, response);
-            if (routing.equals("pt")) {
-                hopper.close();
-            }
             return Response.ok(jsonResponse.toString())
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Content-Type", "application/json")
@@ -273,7 +299,40 @@ public class Servlet {
      * @return GHResponse The response containing the routing information,
      * including the calculated route and other related data.
      */
+    /**
+     * Optional public transport query parameters. Unset values leave the
+     * GraphHopper defaults, i.e. the behaviour before they existed.
+     */
+    public static class PtOptions {
+        final boolean arriveBy;
+        final Integer maxWalkMinutes, limitSolutions;
+        final int searchLaterHours;
+
+        public PtOptions(String arriveBy, String maxWalkMinutes, String limitSolutions, String searchLaterHours) {
+            this.arriveBy = Boolean.parseBoolean(arriveBy);
+            this.maxWalkMinutes = positive(maxWalkMinutes);
+            this.limitSolutions = positive(limitSolutions);
+            Integer later = positive(searchLaterHours);
+            this.searchLaterHours = later == null ? 0 : Math.min(later, 24);
+        }
+
+        private static Integer positive(String v) {
+            if (v == null || v.isEmpty()) {
+                return null;
+            }
+            int n = Integer.parseInt(v);
+            if (n <= 0) {
+                throw new NumberFormatException(v);
+            }
+            return n;
+        }
+    }
+
     public static GHResponse getGtfsRoute(PtRouter ptRouter, String[] waypointsArray, LocalDateTime startDatetime) {
+        return getGtfsRoute(ptRouter, waypointsArray, startDatetime, new PtOptions("false", "", "", ""));
+    }
+
+    public static GHResponse getGtfsRoute(PtRouter ptRouter, String[] waypointsArray, LocalDateTime startDatetime, PtOptions options) {
         List<GHLocation> points = new ArrayList<>();
         for (String s : waypointsArray) {
             double curLat = Double.parseDouble(s.split(",")[1]);
@@ -281,8 +340,39 @@ public class Servlet {
 
             points.add(new GHPointLocation(new GHPoint(curLat, curLon)));
         }
-        Request ghRequest = new Request(points, startDatetime.atZone(_zoneId).toInstant());
-        return ptRouter.route(ghRequest);
+        GHResponse response = ptRouter.route(ptRequest(points, startDatetime, options));
+        // No ride found (e.g. no service at night): retry one hour later at a
+        // time, up to searchLaterHours, and answer with the first that has one.
+        for (int h = 1; h <= options.searchLaterHours && !options.arriveBy && !hasPtLeg(response); h++) {
+            GHResponse later = ptRouter.route(ptRequest(points, startDatetime.plusHours(h), options));
+            if (hasPtLeg(later)) {
+                return later;
+            }
+        }
+        return response;
+    }
+
+    private static Request ptRequest(List<GHLocation> points, LocalDateTime time, PtOptions options) {
+        Request ghRequest = new Request(points, time.atZone(_zoneId).toInstant());
+        ghRequest.setArriveBy(options.arriveBy);
+        if (options.maxWalkMinutes != null) {
+            ghRequest.setLimitStreetTime(java.time.Duration.ofMinutes(options.maxWalkMinutes));
+        }
+        if (options.limitSolutions != null) {
+            ghRequest.setLimitSolutions(options.limitSolutions);
+        }
+        return ghRequest;
+    }
+
+    static boolean hasPtLeg(GHResponse response) {
+        for (ResponsePath path : response.getAll()) {
+            for (Trip.Leg leg : path.getLegs()) {
+                if (leg instanceof Trip.PtLeg) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static void blockAreaSetup(DynamicGraphHopper hopper, String avoidArea) {
